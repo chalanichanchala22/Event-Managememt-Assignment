@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface AttendeeRepository extends JpaRepository<Attendee, Long> {
     List<Attendee> findByEventId(Long eventId);
-
     List<Attendee> findByEvent(Event event);
 }

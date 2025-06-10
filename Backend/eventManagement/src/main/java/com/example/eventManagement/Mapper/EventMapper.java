@@ -2,13 +2,11 @@ package com.example.eventManagement.Mapper;
 
 import com.example.eventManagement.Event.Event;
 import com.example.eventManagement.Dto.EventDTO;
-
 import java.util.stream.Collectors;
 
 public class EventMapper {
-
     public static EventDTO toDTO(Event event) {
-        EventDTO dto = new EventDTO(event.getId(), event.getName(), event.getDescription(), event.getDate(), event.getLocation(), event.getCapacity(), event.getRemainingCapacity(), event.getTags());
+        EventDTO dto = new EventDTO();
         dto.setId(event.getId());
         dto.setName(event.getName());
         dto.setDescription(event.getDescription());
@@ -17,7 +15,6 @@ public class EventMapper {
         dto.setCapacity(event.getCapacity());
         dto.setRemainingCapacity(event.getRemainingCapacity());
         dto.setTags(event.getTags());
-
         if (event.getAttendees() != null) {
             dto.setAttendees(
                     event.getAttendees().stream()
@@ -25,7 +22,6 @@ public class EventMapper {
                             .collect(Collectors.toList())
             );
         }
-
         return dto;
     }
 

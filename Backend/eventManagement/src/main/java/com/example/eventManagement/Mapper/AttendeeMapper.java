@@ -4,7 +4,6 @@ import com.example.eventManagement.Event.Attendee;
 import com.example.eventManagement.Dto.AttendeeDTO;
 
 public class AttendeeMapper {
-
     public static AttendeeDTO toDTO(Attendee attendee) {
         AttendeeDTO dto = new AttendeeDTO();
         dto.setId(attendee.getId());

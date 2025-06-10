@@ -1,22 +1,23 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import EventList from './Pages/EventList';
-import EventDetail from './Pages/EventDetail';
-import EventCreate from './Pages/EventCreate';
-import EventUpdate from './Pages/EventUpdate';
-import { EventProvider } from './Context/EventContext';
+import { Routes, Route } from 'react-router-dom';
+import EventListPage from './Pages/EventListPage';
+import EventDetailPage from './Pages/EventDetailPage';
+import EventCreationPage from './Pages/EventCreationPage';
+import EventUpdatePage from './Pages/EventUpdatePage';
+import EventAttendeePage from './Pages/EventAttendeePage';
+import './App.css';
 
-const App = () => (
-  <EventProvider>
-    <Router>
+function App() {
+  return (
+    <div className="app">
       <Routes>
-        <Route path="/" element={<EventList />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/create" element={<EventCreate />} />
-        <Route path="/edit/:id" element={<EventUpdate />} />
+        <Route path="/" element={<EventListPage />} />
+        <Route path="/event/:id" element={<EventDetailPage />} />
+        <Route path="/create" element={<EventCreationPage />} />
+        <Route path="/update/:id" element={<EventUpdatePage />} />
+        <Route path="/events/:eventId/attendees" element={<EventAttendeePage />} />
       </Routes>
-    </Router>
-  </EventProvider>
-);
+    </div>
+  );
+}
 
 export default App;

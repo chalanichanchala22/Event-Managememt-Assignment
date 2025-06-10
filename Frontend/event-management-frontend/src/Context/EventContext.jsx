@@ -1,12 +1,19 @@
-import React, { createContext, useContext } from 'react';
-import * as EventService from '../Services/EventServices';
+import React, { createContext, useContext, useState } from 'react';
+import * as EventService from '../Api/EventApi';
 
 const EventContext = createContext();
 
 export const useEventContext = () => useContext(EventContext);
 
 export const EventProvider = ({ children }) => {
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState(null);
+
   const contextValue = {
+    events,
+    setEvents,
+    error,
+    setError,
     getEvents: EventService.getEvents,
     getEventById: EventService.getEventById,
     createEvent: EventService.createEvent,

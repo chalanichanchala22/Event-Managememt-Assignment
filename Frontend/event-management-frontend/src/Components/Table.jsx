@@ -1,44 +1,34 @@
-import React from 'react';
-import '../App.css';
+import '../Styles/Table.css';
 
-const Table = ({ headers, data, renderRow }) => {
-  // Ensure headers and data are always arrays to avoid runtime errors
-  const safeHeaders = Array.isArray(headers) ? headers : [];
-  const safeData = Array.isArray(data) ? data : [];
-
-  // Default row renderer if none is provided
-  const defaultRenderRow = (item, idx) => (
-    <tr key={idx}>
-      {Object.values(item).map((value, cellIdx) => (
-        <td key={cellIdx}>{value}</td>
-      ))}
-    </tr>
-  );
-
-  const rowRenderer = renderRow || defaultRenderRow;
-
+function Table({ headers, data, renderRow, isFiltering }) {
+  // Ensure data is an array 
+  const tableData = Array.isArray(data) ? data : [];
+  
   return (
-    <table className="table">
-      <thead>
-        <tr>
-          {safeHeaders.map((head, idx) => (
-            <th key={idx}>{head}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {safeData.length > 0 ? (
-          safeData.map(rowRenderer)
-        ) : (
+    <div className="table-container">
+      {isFiltering && <div className="filter-indicator">Showing filtered results</div>}
+      <table className="table">
+        <thead>
           <tr>
-            <td colSpan={safeHeaders.length || 1} className="table-no-data">
-              No data available.
-            </td>
+            {headers.map((header, index) => (
+              <th key={index}>{header}</th>
+            ))}
           </tr>
-        )}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {tableData.length === 0 ? (
+            <tr>
+              <td colSpan={headers.length} className="table-no-data">
+                {isFiltering ? 'No events match your filters' : 'No data available'}
+              </td>
+            </tr>
+          ) : (
+            tableData.map((item, index) => renderRow(item, index))
+          )}
+        </tbody>
+      </table>
+    </div>
   );
-};
+}
 
 export default Table;

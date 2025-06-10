@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
-@CrossOrigin(origins = "*") // Allows frontend access
 public class EventController {
 
     private final EventService eventService;

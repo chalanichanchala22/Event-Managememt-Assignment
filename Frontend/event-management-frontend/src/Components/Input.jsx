@@ -1,20 +1,20 @@
+import '../Styles/Input.css';
 
-import '../App.css';
-
-const Input = ({ label, type = 'text', name, value, onChange, required = false }) => {
+function Input({ label, type = 'text', value, onChange, name, required, error }) {
   return (
     <div className="input-group">
-      {label && <label htmlFor={name}>{label}</label>}
+      <label>{label}</label>
       <input
-        id={name}
-        name={name}
         type={type}
         value={value}
         onChange={onChange}
+        name={name}
         required={required}
+        className={error ? 'error' : ''}
       />
+      {error && <span className="error-msg">{error}</span>}
     </div>
   );
-};
+}
 
 export default Input;

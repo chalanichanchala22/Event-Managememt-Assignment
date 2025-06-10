@@ -1,13 +1,16 @@
-import '../App.css'; // import global styles
+import '../Styles/Button.css';
 
-const Button = ({ children, onClick, type = 'button', variant = 'primary', disabled = false }) => {
-  const className = `btn btn-${variant}`;
-
+function Button({ children, onClick, type = 'button', variant = 'primary', disabled = false }) {
   return (
-    <button className={className} onClick={onClick} type={type} disabled={disabled}>
+    <button
+      type={type}
+      className={`button ${variant}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
-};
+}
 
 export default Button;
