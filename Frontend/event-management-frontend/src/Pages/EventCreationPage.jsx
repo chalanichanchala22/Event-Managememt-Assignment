@@ -25,7 +25,9 @@ function EventCreationPage() {
     if (!formData.name) newErrors.name = 'Name is required';
     if (!formData.date) newErrors.date = 'Date is required';
     if (!formData.location) newErrors.location = 'Location is required';
-    if (!formData.capacity || formData.capacity <= 0) newErrors.capacity = 'Valid capacity is required';
+    if (!formData.capacity || formData.capacity <= 0) {
+      newErrors.capacity = 'Capacity must be greater than 0';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -33,21 +35,20 @@ function EventCreationPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
     try {
       const eventData = {
         ...formData,
-        capacity: parseInt(formData.capacity) || 0,
-        remainingCapacity: parseInt(formData.capacity) || 0,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        capacity: parseInt(formData.capacity),
+        remainingCapacity: parseInt(formData.capacity),
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
       };
-      
       const newEvent = await createEvent(eventData);
       setEvents(prev => [...prev, newEvent]);
       navigate('/');
     } catch (err) {
-      console.error("Error creating event:", err);
+      console.error('Error creating event:', err);
       setError('Failed to create event: ' + (err.message || 'Unknown error'));
     } finally {
       setIsSubmitting(false);
@@ -57,8 +58,6 @@ function EventCreationPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -68,66 +67,72 @@ function EventCreationPage() {
     <div className="page-container">
       <h1>Create Event</h1>
       <form onSubmit={handleSubmit} className="form-container">
-        <Input
-          label="Name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          error={errors.name}
-          required
-        />
-        <Input
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          as="textarea"
-        />
-        <Input
-          label="Date"
-          type="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          error={errors.date}
-          required
-        />
-        <Input
-          label="Location"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          error={errors.location}
-          required
-        />
-        <Input
-          label="Capacity"
-          type="number"
-          name="capacity"
-          value={formData.capacity}
-          onChange={handleChange}
-          error={errors.capacity}
-          required
-          min="1"
-        />
-        <Input
-          label="Tags"
-          name="tags"
-          value={formData.tags}
-          onChange={handleChange}
-          placeholder="e.g. conference, tech, workshop"
-        />
+        <div className="input-group">
+          <label htmlFor="name">Name</label>
+          <Input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Event Name"
+            className={errors.name ? 'error' : ''}
+          />
+          {errors.name && <div className="error-msg">{errors.name}</div>}
+        </div>
+
+
+        <div className="input-group">
+          <label htmlFor="date">Date</label>
+          <Input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            className={errors.date ? 'error' : ''}
+          />
+          {errors.date && <div className="error-msg">{errors.date}</div>}
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="location">Location</label>
+          <Input
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder="Event Location"
+            className={errors.location ? 'error' : ''}
+          />
+          {errors.location && <div className="error-msg">{errors.location}</div>}
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="capacity">Capacity</label>
+          <Input
+            type="number"
+            name="capacity"
+            value={formData.capacity}
+            onChange={handleChange}
+            placeholder="Number of participants"
+            min="1"
+            className={errors.capacity ? 'error' : ''}
+          />
+          {errors.capacity && <div className="error-msg">{errors.capacity}</div>}
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="tags">Tags</label>
+          <Input
+            name="tags"
+            value={formData.tags}
+            onChange={handleChange}
+            placeholder="e.g. conference, tech, workshop"
+          />
+        </div>
+
         <div className="button-group">
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Creating...' : 'Create Event'}
           </Button>
-          <Button 
-            type="button" 
-            onClick={() => navigate('/')}
-          >
+          <Button type="button" onClick={() => navigate('/')}>
             Cancel
           </Button>
         </div>

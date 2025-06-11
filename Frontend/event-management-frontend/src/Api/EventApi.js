@@ -15,18 +15,16 @@ export const getEvents = async (page, limit, filters) => {
     // Create URL with query parameters for pagination
     let url = `${API_BASE_URL}/events?page=${page}&limit=${limit}`;
     
+    console.log(`Fetching events with pagination: page=${page}, limit=${limit}`);
     // Add filter parameters if they exist
     if (filters.date) url += `&date=${filters.date}`;
     if (filters.location) url += `&location=${encodeURIComponent(filters.location)}`;
     if (filters.tags) url += `&tags=${encodeURIComponent(filters.tags)}`;
+    if (filters.query) url += `&query=${encodeURIComponent(filters.query)}`;
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    
-    return await response.json();
+    const response = await axios.get(url);
+    console.log("API Response Structure:", response.data);
+    return response.data;
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;

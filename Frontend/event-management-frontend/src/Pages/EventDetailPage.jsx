@@ -14,6 +14,7 @@ function EventDetailPage() {
   const [analytics, setAnalytics] = useState(null);
   const [attendeeData, setAttendeeData] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState({});
+  const [filterText, setFilterText] = useState('');
   const navigate = useNavigate();
 
   const event = events.find((e) => e.id === parseInt(id));
@@ -39,6 +40,27 @@ function EventDetailPage() {
     };
     loadData();
   }, [id, setError, event]);
+
+  // Filter attendees based on search text
+  const filteredAttendees = filterText
+    ? attendees.filter(
+        (attendee) => {
+          const searchTerm = filterText.toLowerCase();
+          return (
+            (attendee.name && attendee.name.toLowerCase().includes(searchTerm)) ||
+            (attendee.email && attendee.email.toLowerCase().includes(searchTerm))
+            // Note: The attendee object likely doesn't have a location property
+          );
+        }
+      )
+    : attendees;
+  
+  const isFiltering = filterText.length > 0;
+
+  // If you want to be able to search by clicking a button instead of live filtering:
+  // eslint-disable-next-line no-empty-pattern
+  const [] = useState('');
+  
 
   const validateForm = () => {
     const newErrors = {};
@@ -83,6 +105,39 @@ function EventDetailPage() {
         <p><strong>Capacity:</strong> {event.remainingCapacity}/{event.capacity}</p>
         <p><strong>Tags:</strong> {event.tags}</p>
       </div>
+      
+      <h2>Register Attendee</h2>
+      <form onSubmit={handleRegister} className="form-container">
+        <div className="input-group">
+          <label htmlFor="name">Name</label>
+          <Input
+            name="name"
+            value={attendeeData.name}
+            onChange={(e) => setAttendeeData({ ...attendeeData, name: e.target.value })}
+            placeholder="Attendee Name"
+            className={errors.name ? 'error' : ''}
+          />
+          {errors.name && <div className="error-msg">{errors.name}</div>}
+        </div>
+        
+        <div className="input-group">
+          <label htmlFor="email">Email</label>
+          <Input
+            type="email"
+            name="email"
+            value={attendeeData.email}
+            onChange={(e) => setAttendeeData({ ...attendeeData, email: e.target.value })}
+            placeholder="Attendee Email"
+            className={errors.email ? 'error' : ''}
+          />
+          {errors.email && <div className="error-msg">{errors.email}</div>}
+        </div>
+        
+        <div className="button-group">
+          <Button type="submit">Register Attendee</Button>
+        </div>
+      </form>
+      
       {analytics && (
         <div className="event-detail-box">
           <h2>Analytics</h2>
@@ -90,29 +145,22 @@ function EventDetailPage() {
           <p>Capacity Utilization: {analytics.capacityUtilization}%</p>
         </div>
       )}
-      <h2>Attendees</h2>
-      <Table headers={headers} data={attendees} renderRow={renderRow} />
-      <h2>Register Attendee</h2>
-      <form onSubmit={handleRegister} className="form-container">
-        <Input
-          label="Name"
-          name="name"
-          value={attendeeData.name}
-          onChange={(e) => setAttendeeData({ ...attendeeData, name: e.target.value })}
-          error={errors.name}
-          required
+      <br></br>
+      
+      <div className="attendees-section">
+        <h2>Attendees</h2>
+        <div className="filter-container">
+          
+         
+        </div>
+        <Table 
+          headers={headers} 
+          data={filteredAttendees} 
+          renderRow={renderRow} 
+          isFiltering={isFiltering}
+          totalCount={attendees.length}
         />
-        <Input
-          label="Email"
-          type="email"
-          name="email"
-          value={attendeeData.email}
-          onChange={(e) => setAttendeeData({ ...attendeeData, email: e.target.value })}
-          error={errors.email}
-          required
-        />
-        <Button type="submit">Register</Button>
-      </form>
+      </div>
       <Button onClick={() => navigate('/')}>Back to Events</Button>
     </div>
   );

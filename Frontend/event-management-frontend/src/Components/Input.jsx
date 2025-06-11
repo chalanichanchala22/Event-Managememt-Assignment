@@ -1,19 +1,31 @@
+import React from 'react';
 import '../Styles/Input.css';
 
-function Input({ label, type = 'text', value, onChange, name, required, error }) {
-  return (
-    <div className="input-group">
-      <label>{label}</label>
-      <input
-        type={type}
+const Input = ({ type, placeholder, value, onChange, onKeyPress, className, name, as, ...props }) => {
+  if (as === 'textarea') {
+    return (
+      <textarea
+        name={name}
+        placeholder={placeholder}
         value={value}
         onChange={onChange}
-        name={name}
-        required={required}
-        className={error ? 'error' : ''}
+        className={`input ${className || ''}`}
+        {...props}
       />
-      {error && <span className="error-msg">{error}</span>}
-    </div>
+    );
+  }
+
+  return (
+    <input
+      type={type || 'text'}
+      name={name}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      onKeyPress={onKeyPress}
+      className={`input ${className || ''}`}
+      {...props}
+    />
   );
 }
 

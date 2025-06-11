@@ -1,23 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getEvents, deleteEvent } from '../Api/EventApi';
 import { useEventContext } from '../Context/EventContext';
 import Table from '../Components/Table';
 import Button from '../Components/Button';
 import Modal from '../Components/Modal';
-import Input from '../Components/Input';
 import '../Styles/EventListPage.css';
+import Input from '../Components/Input';
+
 
 function EventListPage() {
   const { events, setEvents, setError } = useEventContext();
   const [page, setPage] = useState(1);
-  const [filterValues, setFilterValues] = useState({ date: '', location: '', tags: '' });
+  const [totalPages, setTotalPages] = useState(1);
   const [appliedFilters, setAppliedFilters] = useState({ date: '', location: '', tags: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
-  const [allData, setAllData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [isFiltering, setIsFiltering] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [dataToDisplay, setDataToDisplay] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tableSearch, setTableSearch] = useState(''); 
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,89 +30,94 @@ function EventListPage() {
     const date = searchParams.get('date') || '';
     const loc = searchParams.get('location') || '';
     const tags = searchParams.get('tags') || '';
+    const query = searchParams.get('query') || '';
     
-    if (date || loc || tags) {
+    if (date || loc || tags || query) {
       const newFilters = { date, location: loc, tags };
-      setFilterValues(newFilters);
       setAppliedFilters(newFilters);
+      setSearchQuery(query);
     }
   }, [location.search]);
 
-  // Updated useEffect to log the filters being applied for debugging
-  useEffect(() => {
-    const loadEvents = async () => {
-      try {
-        console.log('Fetching events with filters:', appliedFilters);
-        const data = await getEvents(page, 10, appliedFilters);
-        setEvents(data);
-        setAllData(data); // Set all data on fetch
-      } catch (err) {
-        setError('Failed to fetch events');
-      }
-    };
-    loadEvents();
-  }, [page, appliedFilters, setEvents, setError]);
-
-  const handleFilterChange = (e) => {
-    setFilterValues({ ...filterValues, [e.target.name]: e.target.value });
+  // Add function to handle table search
+  const handleTableSearch = (e) => {
+    const searchValue = e.target.value.toLowerCase();
+    setTableSearch(searchValue);
   };
-
-  // Improved filter application
-  const applyFilters = () => {
-    // Log for debugging
-    console.log('Applying filters:', filterValues);
+  
+  // New function to execute table search
+  const executeTableSearch = () => {
+    if (!tableSearch) {
+      // If search is cleared, show all events based on current filters
+      setDataToDisplay(events);
+      return;
+    }
     
-    // Apply filters to state
-    setAppliedFilters(filterValues);
-    setPage(1);
+    // Filter events locally based on name or location or date only
+    const filteredEvents = events.filter(event => 
+      event.name.toLowerCase().includes(tableSearch) ||
+      event.location.toLowerCase().includes(tableSearch) ||
+      (event.date && new Date(event.date).toLocaleDateString().toLowerCase().includes(tableSearch))
+    );
     
-    // Update URL with query parameters
-    const searchParams = new URLSearchParams();
-    if (filterValues.date) searchParams.set('date', filterValues.date);
-    if (filterValues.location) searchParams.set('location', filterValues.location);
-    if (filterValues.tags) searchParams.set('tags', filterValues.tags);
-    
-    // Get the base path and ensure we use the correct route
-    const currentPath = location.pathname.replace(/\/+$/, '');
-    
-    // Navigate to the current path with the search parameters
-    navigate({
-      pathname: currentPath, 
-      search: searchParams.toString()
-    }, { replace: true });
+    setDataToDisplay(filteredEvents);
   };
-
-  const clearFilters = () => {
-    setFilterValues({ date: '', location: '', tags: '' });
-    setAppliedFilters({ date: '', location: '', tags: '' });
-    setPage(1);
-    
-    // Remove query parameters from URL
-    navigate(location.pathname, { replace: true });
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteEvent(eventToDelete);
-      setEvents(events.filter((event) => event.id !== eventToDelete));
-      setModalOpen(false);
-    } catch (err) {
-      setError('Failed to delete event');
+  
+  // Function to handle search on enter key
+  const handleTableSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      executeTableSearch();
     }
   };
 
-  const handleSearch = () => {
-    // Apply your filter logic here
-    const filtered = allData.filter(item => {
-      // Your filter conditions based on item properties and filterValues
-      return (
-        (!filterValues.date || item.date === filterValues.date) &&
-        (!filterValues.location || item.location.includes(filterValues.location)) &&
-        (!filterValues.tags || item.tags.some(tag => tag.includes(filterValues.tags)))
-      );
-    });
-    setFilteredData(filtered);
-    setIsFiltering(true);
+  // Update your loadEvents function to properly log pagination information
+  const loadEvents = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log(`Loading page ${page} of events...`);
+      
+      // Add searchQuery to the API call
+      const response = await getEvents(page, 10, { ...appliedFilters, query: searchQuery });
+      
+      // Log the response structure for debugging
+      console.log("API response:", response);
+      
+      // Assuming API returns { data, totalPages, totalCount } or similar structure
+      const { data, totalPages: pages, totalCount: count } = response.data || 
+        { data: response, totalPages: 1, totalCount: response.length };
+      
+      setEvents(data);
+      setDataToDisplay(data);
+      setTableSearch(''); // Reset table search when new data is loaded
+      setTotalPages(pages || 1);
+      setTotalCount(count || data.length);
+      console.log(`Loaded page ${page}/${pages} with ${data.length} events`);
+    } catch (err) {
+      setError('Failed to fetch events');
+      console.error('Error fetching events:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, appliedFilters, searchQuery, setEvents, setError]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      await deleteEvent(eventToDelete);
+      setEvents(events.filter((event) => event.id !== eventToDelete));
+      setDataToDisplay(dataToDisplay.filter((event) => event.id !== eventToDelete));
+      setModalOpen(false);
+    } catch (err) {
+      setError('Failed to delete event');
+      console.error('Error deleting event:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const headers = ['Name', 'Date', 'Location', 'Capacity', 'Actions'];
@@ -117,10 +125,10 @@ function EventListPage() {
   const renderRow = (event) => (
     <tr key={event.id}>
       <td>{event.name}</td>
-      <td>{event.date}</td>
+      <td>{new Date(event.date).toLocaleDateString()}</td>
       <td>{event.location}</td>
       <td>{event.remainingCapacity}/{event.capacity}</td>
-      <td>
+      <td className="action-buttons">
         <Button onClick={() => navigate(`/event/${event.id}`)}>View</Button>
         <Button onClick={() => navigate(`/update/${event.id}`)}>Edit</Button>
         <Button
@@ -138,59 +146,91 @@ function EventListPage() {
 
   // Helper function to check if filters are active
   const isFilteringActive = () => {
-    return Object.values(appliedFilters).some(value => value !== '');
+    return Object.values(appliedFilters).some(value => value !== '') || searchQuery !== '';
   };
-
-  // Pass filteredData when filtering is active, otherwise pass allData
-  const dataToDisplay = isFiltering ? filteredData : allData;
 
   return (
     <div className="page-container">
-      <h1>Events</h1>
-      <Button onClick={() => navigate('/create')}>Create Event</Button>
-      <div className="search-filter-container">
-        <h3>Filter Events</h3>
-        <div className="search-filter-bar">
-          <Input
-            label="Date"
-            type="date"
-            name="date"
-            value={filterValues.date}
-            onChange={handleFilterChange}
-            placeholder="Select date"
-          />
-          <Input
-            label="Location"
-            name="location"
-            value={filterValues.location}
-            onChange={handleFilterChange}
-            placeholder="Enter location"
-          />
-          <Input
-            label="Tags"
-            name="tags"
-            value={filterValues.tags}
-            onChange={handleFilterChange}
-            placeholder="Enter tags"
-          />
-          <div className="filter-buttons">
-            <Button onClick={applyFilters}>Search</Button>
-            <Button variant="secondary" onClick={clearFilters}>Clear</Button>
-          </div>
+      <div className="page-header">
+        <h1>Event Management System</h1>
+        <Button className="create-button" onClick={() => navigate('/create')}>Create Event</Button>
+      </div>
+
+      {loading ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading events...</p>
         </div>
-      </div>
-      <Table 
-        headers={headers} 
-        data={dataToDisplay} 
-        renderRow={renderRow}
-        isFiltering={isFiltering} 
-      />
-      <div className="pagination">
-        <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
-          Previous
-        </Button>
-        <Button onClick={() => setPage(page + 1)}>Next</Button>
-      </div>
+      ) : dataToDisplay.length > 0 ? (
+        <>
+          <div className="table-search-controls">
+            <div className="table-search-input-group">
+              <Input
+                type="text"
+                placeholder="Search By Name, Location, or Date"
+                value={tableSearch}
+                onChange={handleTableSearch}
+                onKeyPress={handleTableSearchKeyPress}
+                className="table-search-input"
+              />
+              <div className="table-button-group">
+                <Button 
+                  onClick={executeTableSearch}
+                  className="table-search-button"
+                  variant="primary"
+                >
+                  <i className="fa fa-search"></i> Search
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setTableSearch('');
+                    setDataToDisplay(events);
+                  }}
+                  className="clear-search-button"
+                  variant="secondary"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </div>
+          <Table 
+            headers={headers} 
+            data={dataToDisplay} 
+            renderRow={renderRow}
+            isFiltering={isFilteringActive()}
+            totalCount={totalCount}
+            searchProps={{
+              searchValue: tableSearch,
+              onSearchChange: handleTableSearch,
+              onSearchExecute: executeTableSearch,
+              onSearchClear: () => {
+                setTableSearch('');
+                setDataToDisplay(events);
+              },
+              onKeyPress: handleTableSearchKeyPress
+            }}
+          />
+          
+  
+          <div className="pagination">
+            <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+              Previous
+            </Button>
+            <span className="page-indicator">Page {page} of {totalPages}</span>
+            <Button onClick={() => setPage(page + 1)} disabled={page >= totalPages}>
+              Next
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="no-events-message">
+          {isFilteringActive() 
+            ? "No events match your search criteria. Try adjusting your filters." 
+            : "No events found. Create your first event using the button above."}
+        </div>
+      )}
+
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

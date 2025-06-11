@@ -2,23 +2,26 @@
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  border: 2px solid #000000; /* Changed to solid black border */
 }
 
 .table th,
 .table td {
-  border: 1px solid #ccc;
+  border: 1px solid #000000; /* Changed to solid black border */
   padding: 0.75rem;
   text-align: left;
 }
 
 .table th {
   background-color: #f4f4f4;
+  border-bottom: 2px solid #000000; /* Changed to solid black border */
 }
 
 .table-no-data {
   text-align: center;
   color: #999;
   padding: 2rem;
+  border: 1px dashed #000000; /* Already black */
 }
 
 @media (max-width: 768px) {
@@ -35,9 +38,124 @@
   margin-bottom: 10px;
   border-radius: 4px;
   border-left: 3px solid #1890ff;
+  border-top: 1px solid #1890ff; 
+  border-right: 1px solid #1890ff; 
+  border-bottom: 1px solid #1890ff; 
   font-size: 14px;
 }
 
 .table-container {
   width: 100%;
+  border: 1px solid #000000; 
+  padding: 10px;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-search-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #000000; 
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+}
+
+.table-search-input-group {
+  display: flex;
+  flex: 1;
+  max-width: 1000px;
+}
+
+.table-search-input {
+  flex: 1;
+  margin-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  min-width: 300px;
+}
+
+.table-search-button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.clear-search-button {
+  margin-left: 10px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000000; 
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000; 
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  border-bottom: 2px solid #000000; 
+}
+
+.data-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.filter-results {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6c757d;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .table-search-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+  
+  .table-search-input-group {
+   flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  margin-right: 10px;
+  }
+  .table-search-button {
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  order: 1;
+}
+  .clear-search-button {
+  background: #eee;
+  color: #333;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  order: 2;
+  }
 }

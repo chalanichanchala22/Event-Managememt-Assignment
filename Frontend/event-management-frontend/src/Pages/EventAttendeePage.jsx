@@ -1,17 +1,19 @@
 // src/pages/EventAttendeePage.js
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { registerAttendee, getAttendeesByEvent } from '../Api/EventApi';
 import Input from '../Components/Input';
 import Button from '../Components/Button';
-
+import '../Styles/EventAttendeePage.css'; 
 function EventAttendeePage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [attendees, setAttendees] = useState([]);
   const [formData, setFormData] = useState({ name: '', email: '' });
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
     const fetchAttendees = async () => {
@@ -19,9 +21,9 @@ function EventAttendeePage() {
         setIsLoading(true);
         const response = await getAttendeesByEvent(eventId);
         setAttendees(response.data);
-        setError(null);
+        setApiError(null);
       } catch (err) {
-        setError('Failed to fetch attendees: ' + (err.message || 'Unknown error'));
+        setApiError('Failed to fetch attendees: ' + (err.message || 'Unknown error'));
       } finally {
         setIsLoading(false);
       }
@@ -29,60 +31,111 @@ function EventAttendeePage() {
     fetchAttendees();
   }, [eventId]);
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    setApiError(null);
     try {
       await registerAttendee(eventId, formData);
       const response = await getAttendeesByEvent(eventId);
       setAttendees(response.data);
       setFormData({ name: '', email: '' });
     } catch (err) {
-      setError('Failed to register attendee: ' + (err.message || 'Unknown error'));
+      setApiError('Failed to register attendee: ' + (err.message || 'Unknown error'));
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem' }}>
-      <h2>Attendees for Event #{eventId}</h2>
-      <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-        <Input
-          label="Name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          label="Email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          type="email"
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Registering...' : 'Register Attendee'}
+    <div className="page-container">
+      <h1>Attendees for Event #{eventId}</h1>
+      
+      {apiError && <div className="error-banner">{apiError}</div>}
+
+      <div className="two-column-layout">
+        <div className="column registration-column">
+          <h2>Register Attendee</h2>
+          <form onSubmit={handleSubmit} className="form-container">
+            <div className="input-group">
+              <label htmlFor="name">Name</label>
+              <Input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Attendee Name"
+                className={errors.name ? 'error' : ''}
+              />
+              {errors.name && <div className="error-msg">{errors.name}</div>}
+            </div>
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Attendee Email"
+                className={errors.email ? 'error' : ''}
+              />
+              {errors.email && <div className="error-msg">{errors.email}</div>}
+            </div>
+
+            <div className="button-group">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Registering...' : 'Register Attendee'}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="column attendees-column">
+          <div className="attendees-section">
+            <h2>Attendee List</h2>
+            {isLoading ? (
+              <div className="loading">Loading attendees...</div>
+            ) : attendees.length > 0 ? (
+              <ul className="attendee-list">
+                {attendees.map((attendee) => (
+                  <li key={attendee.id} className="attendee-item">
+                    <span className="attendee-name">{attendee.name}</span>
+                    <span className="attendee-email">({attendee.email})</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="no-attendees">No attendees registered yet.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="back-button-container">
+        <Button onClick={() => navigate(-1)} className="back-button">
+          Back to Event
         </Button>
-      </form>
-      {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-      <h3>Attendee List</h3>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {attendees.map((attendee) => (
-          <li key={attendee.id} style={{ marginBottom: '0.5rem' }}>
-            {attendee.name} ({attendee.email})
-          </li>
-        ))}
-      </ul>
-      <Button onClick={() => navigate(-1)}>Back to Event</Button>
+      </div>
     </div>
   );
 }
