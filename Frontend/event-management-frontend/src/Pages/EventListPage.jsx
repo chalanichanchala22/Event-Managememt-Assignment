@@ -12,7 +12,7 @@ import Input from '../Components/Input';
 function EventListPage() {
   const { events, setEvents, setError } = useEventContext();
   const [page] = useState(1);
-  const [setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);  // Fixed: proper destructuring
   const [appliedFilters, setAppliedFilters] = useState({ date: '', location: '', tags: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
@@ -47,7 +47,7 @@ function EventListPage() {
     setTableSearch(searchValue);
   };
   
-  // New function to execute table search
+  // Function to execute table search
   const executeTableSearch = () => {
     if (!tableSearch) {
       // If search is cleared, show all events based on current filters
@@ -73,17 +73,13 @@ function EventListPage() {
     }
   };
 
-  // Update your loadEvents function to properly log pagination information
+  // Updated loadEvents function with console logs removed
   const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
-      console.log(`Loading page ${page} of events...`);
       
       // Add searchQuery to the API call
       const response = await getEvents(page, 10, { ...appliedFilters, query: searchQuery });
-      
-      // Log the response structure for debugging
-      console.log("API response:", response);
       
       // Assuming API returns { data, totalPages, totalCount } or similar structure
       const { data, totalPages: pages, totalCount: count } = response.data || 
@@ -94,14 +90,12 @@ function EventListPage() {
       setTableSearch(''); // Reset table search when new data is loaded
       setTotalPages(pages || 1);
       setTotalCount(count || data.length);
-      console.log(`Loaded page ${page}/${pages} with ${data.length} events`);
     } catch (err) {
       setError('Failed to fetch events');
-      console.error('Error fetching events:', err);
     } finally {
       setLoading(false);
     }
-  }, [page, appliedFilters, searchQuery, setEvents, setTotalPages, setError]);
+  }, [page, appliedFilters, searchQuery, setEvents, setError]);
 
   useEffect(() => {
     loadEvents();
@@ -116,7 +110,6 @@ function EventListPage() {
       setModalOpen(false);
     } catch (err) {
       setError('Failed to delete event');
-      console.error('Error deleting event:', err);
     } finally {
       setLoading(false);
     }
@@ -151,7 +144,6 @@ function EventListPage() {
     return Object.values(appliedFilters).some(value => value !== '') || searchQuery !== '';
   };
 
-  // Modify your return statement to use local pagination
   return (
     <div className="page-container">
       <div className="page-header">
@@ -205,17 +197,6 @@ function EventListPage() {
             renderRow={renderRow}
             isFiltering={isFilteringActive()}
             totalCount={totalCount}
-            searchProps={{
-              searchValue: tableSearch,
-              onSearchChange: handleTableSearch,
-              onSearchExecute: executeTableSearch,
-              onSearchClear: () => {
-                setTableSearch('');
-                setDataToDisplay(events);
-                setCurrentPage(1); // Reset to first page when clearing search
-              },
-              onKeyPress: handleTableSearchKeyPress
-            }}
           />
           
           <div className="pagination">
@@ -237,7 +218,7 @@ function EventListPage() {
           </div>
           {dataToDisplay.length > 0 && (
             <div className="pagination-info">
-              Showing {(currentPage - 1) * eventsPerPage + 1} - {Math.min(currentPage * eventsPerPage, totalCount)} of {totalCount} events
+              Showing {(currentPage - 1) * eventsPerPage + 1} - {Math.min(currentPage * eventsPerPage, dataToDisplay.length)} of {dataToDisplay.length} events
             </div>
           )}
         </>

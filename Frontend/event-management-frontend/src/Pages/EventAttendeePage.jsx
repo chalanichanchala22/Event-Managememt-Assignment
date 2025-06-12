@@ -1,4 +1,3 @@
-// src/pages/EventAttendeePage.js
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { registerAttendee, getAttendeesByEvent } from '../Api/EventApi';

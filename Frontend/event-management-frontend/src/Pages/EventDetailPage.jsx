@@ -14,7 +14,6 @@ function EventDetailPage() {
   const [analytics, setAnalytics] = useState(null);
   const [attendeeData, setAttendeeData] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState({});
-  const [filterText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [attendeesPerPage] = useState(5);
   const navigate = useNavigate();
@@ -43,20 +42,9 @@ function EventDetailPage() {
     loadData();
   }, [id, setError, event]);
 
-  // Filter attendees based on search text
-  const filteredAttendees = filterText
-    ? attendees.filter(
-        (attendee) => {
-          const searchTerm = filterText.toLowerCase();
-          return (
-            (attendee.name && attendee.name.toLowerCase().includes(searchTerm)) ||
-            (attendee.email && attendee.email.toLowerCase().includes(searchTerm))
-          );
-        }
-      )
-    : attendees;
-  
-  const isFiltering = filterText.length > 0;
+  // No need for filtering logic since it's not being used
+  const filteredAttendees = attendees;
+  const isFiltering = false;
 
   const validateForm = () => {
     const newErrors = {};
@@ -146,14 +134,6 @@ function EventDetailPage() {
       </div>
     );
   };
-
-  // Make sure we're not on an invalid page after registering a new attendee
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [filteredAttendees.length, currentPage, totalPages]);
 
   return (
     <div className="page-container">
@@ -249,9 +229,7 @@ function EventDetailPage() {
       
       <div className="attendees-section">
         <h2>Attendees</h2>
-        <div className="filter-container">
-          {/* Add a filter input here if needed */}
-        </div>
+        {/* Removed empty filter container */}
         <Table 
           headers={headers} 
           data={currentAttendees} 

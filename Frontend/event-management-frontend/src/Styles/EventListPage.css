@@ -8,7 +8,36 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
   margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin-bottom: 0;
+}
+
+.create-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.create-button:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.create-button:active {
+  transform: translateY(1px);
 }
 
 .search-filter-container {
@@ -189,6 +218,12 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.table-container {
+  width: 100%;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -210,8 +245,6 @@
   .page-container {
     padding: 1rem;
   }
-  
-
   
   .action-buttons {
     flex-direction: column;

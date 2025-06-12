@@ -19,9 +19,13 @@ function EventUpdatePage() {
     const event = events.find((e) => e.id === parseInt(id));
     if (event) {
       setOriginalEvent(event); // Store the original event
+      
+      // Format the date to YYYY-MM-DD for the date input
+      const formattedDate = event.date ? new Date(event.date).toISOString().split('T')[0] : '';
+      
       setFormData({
         name: event.name,
-        date: event.date,
+        date: formattedDate,
         location: event.location,
         capacity: event.capacity,
         tags: Array.isArray(event.tags) ? event.tags.join(', ') : event.tags,
@@ -71,7 +75,6 @@ function EventUpdatePage() {
       setEvents(prev => prev.map(e => e.id === parseInt(id) ? updatedEvent : e));
       navigate('/');
     } catch (err) {
-      console.error('Update error:', err);
       setError('Failed to update event: ' + (err.message || 'Unknown error'));
     } finally {
       setIsSubmitting(false);

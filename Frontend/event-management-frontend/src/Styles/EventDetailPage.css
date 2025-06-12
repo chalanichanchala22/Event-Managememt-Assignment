@@ -155,12 +155,6 @@
   color: #2c3e50;
 }
 
-.error-msg {
-  color: #e74c3c;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
 /* Pagination styles */
 .pagination {
   display: flex;

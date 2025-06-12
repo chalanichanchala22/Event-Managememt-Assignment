@@ -1,4 +1,3 @@
-import React from 'react';
 import '../Styles/Input.css';
 
 const Input = ({ type, placeholder, value, onChange, onKeyPress, className, name, as, ...props }) => {

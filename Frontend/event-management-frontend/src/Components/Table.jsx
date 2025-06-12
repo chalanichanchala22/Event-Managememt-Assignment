@@ -1,17 +1,12 @@
-
 import '../Styles/Table.css';
 
-function Table({ headers, data, renderRow, isFiltering, totalCount, searchProps }) {
-  
+function Table({ headers, data, renderRow, isFiltering, totalCount }) {
   // Ensure data is an array
   const tableData = Array.isArray(data) ? data : [];
-  // Calculate how many items are being filtered out
- 
 
   return (
     <div className="table-wrapper">
-      
-           <table className="data-table">
+      <table className="data-table">
         <thead>
           <tr>
             {headers.map((header, index) => (
