@@ -11,8 +11,8 @@ import Input from '../Components/Input';
 
 function EventListPage() {
   const { events, setEvents, setError } = useEventContext();
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page] = useState(1);
+  const [setTotalPages] = useState(1);
   const [appliedFilters, setAppliedFilters] = useState({ date: '', location: '', tags: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
@@ -21,6 +21,8 @@ function EventListPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [tableSearch, setTableSearch] = useState(''); 
+  const [eventsPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -99,7 +101,7 @@ function EventListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, appliedFilters, searchQuery, setEvents, setError]);
+  }, [page, appliedFilters, searchQuery, setEvents, setTotalPages, setError]);
 
   useEffect(() => {
     loadEvents();
@@ -149,6 +151,7 @@ function EventListPage() {
     return Object.values(appliedFilters).some(value => value !== '') || searchQuery !== '';
   };
 
+  // Modify your return statement to use local pagination
   return (
     <div className="page-container">
       <div className="page-header">
@@ -185,6 +188,7 @@ function EventListPage() {
                   onClick={() => {
                     setTableSearch('');
                     setDataToDisplay(events);
+                    setCurrentPage(1); // Reset to first page when clearing search
                   }}
                   className="clear-search-button"
                   variant="secondary"
@@ -196,7 +200,8 @@ function EventListPage() {
           </div>
           <Table 
             headers={headers} 
-            data={dataToDisplay} 
+            data={dataToDisplay
+              .slice((currentPage - 1) * eventsPerPage, currentPage * eventsPerPage)} 
             renderRow={renderRow}
             isFiltering={isFilteringActive()}
             totalCount={totalCount}
@@ -207,21 +212,34 @@ function EventListPage() {
               onSearchClear: () => {
                 setTableSearch('');
                 setDataToDisplay(events);
+                setCurrentPage(1); // Reset to first page when clearing search
               },
               onKeyPress: handleTableSearchKeyPress
             }}
           />
           
-  
           <div className="pagination">
-            <Button onClick={() => setPage(page - 1)} disabled={page === 1}>
+            <Button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+              disabled={currentPage === 1}
+            >
               Previous
             </Button>
-            <span className="page-indicator">Page {page} of {totalPages}</span>
-            <Button onClick={() => setPage(page + 1)} disabled={page >= totalPages}>
+            <span className="page-indicator">
+              Page {currentPage} of {Math.ceil(dataToDisplay.length / eventsPerPage)}
+            </span>
+            <Button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(dataToDisplay.length / eventsPerPage)))} 
+              disabled={currentPage >= Math.ceil(dataToDisplay.length / eventsPerPage)}
+            >
               Next
             </Button>
           </div>
+          {dataToDisplay.length > 0 && (
+            <div className="pagination-info">
+              Showing {(currentPage - 1) * eventsPerPage + 1} - {Math.min(currentPage * eventsPerPage, totalCount)} of {totalCount} events
+            </div>
+          )}
         </>
       ) : (
         <div className="no-events-message">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttendeesByEvent, registerAttendee } from '../Api/EventApi';
 import { useEventContext } from '../Context/EventContext';
@@ -15,6 +15,8 @@ function EventDetailPage() {
   const [attendeeData, setAttendeeData] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState({});
   const [filterText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [attendeesPerPage] = useState(5);
   const navigate = useNavigate();
 
   const event = events.find((e) => e.id === parseInt(id));
@@ -49,18 +51,12 @@ function EventDetailPage() {
           return (
             (attendee.name && attendee.name.toLowerCase().includes(searchTerm)) ||
             (attendee.email && attendee.email.toLowerCase().includes(searchTerm))
-            // Note: The attendee object likely doesn't have a location property
           );
         }
       )
     : attendees;
   
   const isFiltering = filterText.length > 0;
-
-  // If you want to be able to search by clicking a button instead of live filtering:
-  // eslint-disable-next-line no-empty-pattern
-  const [] = useState('');
-  
 
   const validateForm = () => {
     const newErrors = {};
@@ -94,6 +90,70 @@ function EventDetailPage() {
   );
 
   if (!event) return <div className="page-container">Event not found</div>;
+
+  // Calculate current attendees to display based on pagination
+  const indexOfLastAttendee = currentPage * attendeesPerPage;
+  const indexOfFirstAttendee = indexOfLastAttendee - attendeesPerPage;
+  const currentAttendees = filteredAttendees.slice(indexOfFirstAttendee, indexOfLastAttendee);
+  const totalPages = Math.ceil(filteredAttendees.length / attendeesPerPage);
+  
+  // Change page
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Pagination component
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+    
+    return (
+      <div className="pagination">
+        <button 
+          onClick={() => handlePageChange(currentPage - 1)} 
+          disabled={currentPage === 1}
+          className="pagination-button"
+        >
+          &laquo; Previous
+        </button>
+        
+        <div className="pagination-pages">
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(page => 
+              page === 1 || 
+              page === totalPages || 
+              (page >= currentPage - 1 && page <= currentPage + 1)
+            )
+            .map((page, index, array) => (
+              <React.Fragment key={page}>
+                {index > 0 && array[index - 1] !== page - 1 && (
+                  <span className="pagination-ellipsis">...</span>
+                )}
+                <button 
+                  onClick={() => handlePageChange(page)}
+                  className={`pagination-page-button ${currentPage === page ? 'active' : ''}`}
+                >
+                  {page}
+                </button>
+              </React.Fragment>
+            ))}
+        </div>
+        
+        <button 
+          onClick={() => handlePageChange(currentPage + 1)} 
+          disabled={currentPage === totalPages}
+          className="pagination-button"
+        >
+          Next &raquo;
+        </button>
+      </div>
+    );
+  };
+
+  // Make sure we're not on an invalid page after registering a new attendee
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [filteredAttendees.length, currentPage, totalPages]);
 
   return (
     <div className="page-container">
@@ -147,9 +207,41 @@ function EventDetailPage() {
         <div className="right-column">
           {analytics && (
             <div className="event-detail-box analytics-box">
-              <h2>Analytics</h2>
-              <p>Total Attendees: {analytics.totalAttendees}</p>
-              <p>Capacity Utilization: {analytics.capacityUtilization}%</p>
+              <h2>Event Statistics</h2>
+              
+              <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-content">
+                  <div className="stat-value">{analytics.totalAttendees}</div>
+                  <div className="stat-label">Registered Attendees</div>
+                </div>
+              </div>
+              
+              <div className="stat-card">
+                <div className="stat-icon">📊</div>
+                <div className="stat-content">
+                  <div className="stat-value">{analytics.capacityUtilization}%</div>
+                  <div className="stat-label">Capacity Filled</div>
+                </div>
+                <div className="progress-bar">
+                  <div 
+                    className={`progress-fill ${
+                      analytics.capacityUtilization < 50 ? 'low' : 
+                      analytics.capacityUtilization < 80 ? 'medium' : 'high'
+                    }`}
+                    style={{ width: `${Math.min(analytics.capacityUtilization, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="stat-card">
+                <div className="stat-icon">🪑</div>
+                <div className="stat-content">
+                  <div className="stat-value">{event.remainingCapacity}</div>
+                  <div className="stat-label">Seats Available</div>
+                </div>
+              </div>
+
             </div>
           )}
         </div>
@@ -158,14 +250,21 @@ function EventDetailPage() {
       <div className="attendees-section">
         <h2>Attendees</h2>
         <div className="filter-container">
+          {/* Add a filter input here if needed */}
         </div>
         <Table 
           headers={headers} 
-          data={filteredAttendees} 
+          data={currentAttendees} 
           renderRow={renderRow} 
           isFiltering={isFiltering}
           totalCount={attendees.length}
         />
+        <Pagination />
+        {filteredAttendees.length > 0 && (
+          <div className="pagination-info">
+            Showing {indexOfFirstAttendee + 1} - {Math.min(indexOfLastAttendee, filteredAttendees.length)} of {filteredAttendees.length} attendees
+          </div>
+        )}
       </div>
     </div>
   );

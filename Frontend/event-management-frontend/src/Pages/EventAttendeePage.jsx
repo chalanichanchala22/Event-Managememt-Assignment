@@ -76,9 +76,11 @@ function EventAttendeePage() {
 
       <div className="two-column-layout">
         <div className="column registration-column">
-          <h2>Register Attendee</h2>
+         
           <form onSubmit={handleSubmit} className="form-container">
+            <h2>Register Attendee</h2>
             <div className="input-group">
+               
               <label htmlFor="name">Name</label>
               <Input
                 name="name"

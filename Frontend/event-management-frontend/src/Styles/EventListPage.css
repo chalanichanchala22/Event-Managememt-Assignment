@@ -42,13 +42,21 @@
 
 .pagination {
   display: flex;
-  gap: 10px;
   justify-content: center;
   align-items: center;
-  margin-top: 1.5rem;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.pagination-info {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 8px;
 }
 
 .page-indicator {
+  margin: 0 10px;
   font-size: 0.9rem;
   color: #666;
 }
