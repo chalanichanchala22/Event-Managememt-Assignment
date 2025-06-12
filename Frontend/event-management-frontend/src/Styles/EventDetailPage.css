@@ -35,3 +35,55 @@ p {
     padding: 0.75rem;
   }
 }
+
+/* Add these styles to your existing CSS */
+
+.event-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  align-self: flex-start;
+}
+
+/* Make sure your existing two-column layout CSS is still there */
+.two-column-layout {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.left-column {
+  flex: 1;
+}
+
+.right-column {
+  flex: 1;
+}
+
+.analytics-box {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 768px) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+  
+  .event-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .back-button {
+    margin-top: 1rem;
+    align-self: flex-end;
+  }
+}

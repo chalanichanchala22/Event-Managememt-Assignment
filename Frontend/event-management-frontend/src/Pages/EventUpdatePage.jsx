@@ -90,8 +90,9 @@ function EventUpdatePage() {
 
   return (
     <div className="page-container">
-      <h1>Update Event</h1>
+      
       <form onSubmit={handleSubmit} className="form-container">
+        <h1>Update Event</h1>
         <div className="input-group">
           <label htmlFor="name">Name</label>
           <Input

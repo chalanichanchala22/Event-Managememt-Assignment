@@ -14,7 +14,7 @@ function EventDetailPage() {
   const [analytics, setAnalytics] = useState(null);
   const [attendeeData, setAttendeeData] = useState({ name: '', email: '' });
   const [errors, setErrors] = useState({});
-  const [filterText, setFilterText] = useState('');
+  const [filterText] = useState('');
   const navigate = useNavigate();
 
   const event = events.find((e) => e.id === parseInt(id));
@@ -97,61 +97,67 @@ function EventDetailPage() {
 
   return (
     <div className="page-container">
-      <div className="event-detail-box">
+      <div className="event-detail-header">
         <h1>{event.name}</h1>
-        <p><strong>Description:</strong> {event.description}</p>
+        <Button className="back-button" onClick={() => navigate('/')}>Back to Events</Button>
+      </div>
+
+      <div className="event-detail-box">
         <p><strong>Date:</strong> {event.date}</p>
         <p><strong>Location:</strong> {event.location}</p>
         <p><strong>Capacity:</strong> {event.remainingCapacity}/{event.capacity}</p>
         <p><strong>Tags:</strong> {event.tags}</p>
       </div>
       
-      <h2>Register Attendee</h2>
-      <form onSubmit={handleRegister} className="form-container">
-        <div className="input-group">
-          <label htmlFor="name">Name</label>
-          <Input
-            name="name"
-            value={attendeeData.name}
-            onChange={(e) => setAttendeeData({ ...attendeeData, name: e.target.value })}
-            placeholder="Attendee Name"
-            className={errors.name ? 'error' : ''}
-          />
-          {errors.name && <div className="error-msg">{errors.name}</div>}
+      <div className="two-column-layout">
+        <div className="left-column">
+          <h2>Register Attendee</h2>
+          <form onSubmit={handleRegister} className="form-container">
+            <div className="input-group">
+              <label htmlFor="name">Name</label>
+              <Input
+                name="name"
+                value={attendeeData.name}
+                onChange={(e) => setAttendeeData({ ...attendeeData, name: e.target.value })}
+                placeholder="Attendee Name"
+                className={errors.name ? 'error' : ''}
+              />
+              {errors.name && <div className="error-msg">{errors.name}</div>}
+            </div>
+            
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <Input
+                type="email"
+                name="email"
+                value={attendeeData.email}
+                onChange={(e) => setAttendeeData({ ...attendeeData, email: e.target.value })}
+                placeholder="Attendee Email"
+                className={errors.email ? 'error' : ''}
+              />
+              {errors.email && <div className="error-msg">{errors.email}</div>}
+            </div>
+            
+            <div className="button-group">
+              <Button type="submit">Register Attendee</Button>
+            </div>
+          </form>
         </div>
         
-        <div className="input-group">
-          <label htmlFor="email">Email</label>
-          <Input
-            type="email"
-            name="email"
-            value={attendeeData.email}
-            onChange={(e) => setAttendeeData({ ...attendeeData, email: e.target.value })}
-            placeholder="Attendee Email"
-            className={errors.email ? 'error' : ''}
-          />
-          {errors.email && <div className="error-msg">{errors.email}</div>}
+        <div className="right-column">
+          {analytics && (
+            <div className="event-detail-box analytics-box">
+              <h2>Analytics</h2>
+              <p>Total Attendees: {analytics.totalAttendees}</p>
+              <p>Capacity Utilization: {analytics.capacityUtilization}%</p>
+            </div>
+          )}
         </div>
-        
-        <div className="button-group">
-          <Button type="submit">Register Attendee</Button>
-        </div>
-      </form>
-      
-      {analytics && (
-        <div className="event-detail-box">
-          <h2>Analytics</h2>
-          <p>Total Attendees: {analytics.totalAttendees}</p>
-          <p>Capacity Utilization: {analytics.capacityUtilization}%</p>
-        </div>
-      )}
-      <br></br>
+      </div>
       
       <div className="attendees-section">
         <h2>Attendees</h2>
         <div className="filter-container">
-          
-         
         </div>
         <Table 
           headers={headers} 
@@ -161,7 +167,6 @@ function EventDetailPage() {
           totalCount={attendees.length}
         />
       </div>
-      <Button onClick={() => navigate('/')}>Back to Events</Button>
     </div>
   );
 }
